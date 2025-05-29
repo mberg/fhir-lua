@@ -8,8 +8,10 @@ local client = AsyncClient.new({
   backend = "google_healthcare"
 })
 
--- Patient ID for Roger Milla
-local patient_id = "f16195fd-25d0-4294-ad6f-8c1046897293"
+-- Get patient ID from command line argument or use default
+local patient_id = arg[1] or "f16195fd-25d0-4294-ad6f-8c1046897293"
+
+print("Recording measles vaccine for patient:", patient_id)
 
 -- Create immunization resource for measles vaccine
 local immunization = Resource:new("Immunization", {

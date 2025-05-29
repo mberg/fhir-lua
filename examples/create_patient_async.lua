@@ -14,12 +14,12 @@ local patient = Resource:new("Patient", {
   name = {
     {
       use = "official",
-      family = "Milla",
-      given = {"Roger"}
+      family = "Praekelt",
+      given = {"Gustavio"}
     }
   },
   gender = "male",
-  birthDate = "1980-05-15"
+  birthDate = "2025-05-24"
 })
 
 -- Create the patient using async coroutine
