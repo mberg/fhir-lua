@@ -1,4 +1,4 @@
-package = "fhir-skeleton"
+package = "fhir-lua"
 version = "0.2.0-1"
 source = { url = "git+https://example.com/fhir-lua-skeleton.git" }
 description = {
@@ -6,8 +6,8 @@ description = {
   detailed  = [[Lua port of the popular fhir-py client: resource CRUD, fluent
                  search builder, coroutine‑based async wrapper, and reference
                  helpers. Includes Google Healthcare API backend support.]],
-  homepage  = "https://github.com/yourname/fhir-lua",
-  license   = "MIT",
+  homepage  = "https://github.com/mberg/fhir-lua",
+  license   = "Apache 2.0",
 }
 dependencies = {
   "lua >= 5.1",
