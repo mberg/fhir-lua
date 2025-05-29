@@ -7,13 +7,32 @@ local Reference   = require("fhir.reference")
 if not _G.__fhir_dotenv_loaded then
   local success, dotenv = pcall(require, "lua-dotenv")
   if success and dotenv and type(dotenv.load_dotenv) == "function" then
-    -- lua-dotenv looks for .env in ~/.config/.env by default
-    -- We need to specify the path to our project's .env file
-    local env_file_path = "./.env"  -- Relative to current working directory
-    local load_ok, load_err = pcall(dotenv.load_dotenv, env_file_path)
-    if load_ok then
-      -- Store dotenv module globally so we can use it later
-      _G.__fhir_dotenv_module = dotenv
+    -- Try to find .env file in current directory or parent directories
+    local function find_env_file()
+      local possible_paths = {
+        "./.env",           -- Current directory
+        "../.env",          -- Parent directory
+        "../../.env",       -- Grandparent directory
+        "../../../.env"     -- Great-grandparent directory
+      }
+      
+      for _, path in ipairs(possible_paths) do
+        local file = io.open(path, "r")
+        if file then
+          file:close()
+          return path
+        end
+      end
+      return nil
+    end
+    
+    local env_file_path = find_env_file()
+    if env_file_path then
+      local load_ok, load_err = pcall(dotenv.load_dotenv, env_file_path)
+      if load_ok then
+        -- Store dotenv module globally so we can use it later
+        _G.__fhir_dotenv_module = dotenv
+      end
     end
     _G.__fhir_dotenv_loaded = true
   end
