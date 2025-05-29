@@ -183,75 +183,55 @@ To add support for new FHIR backends:
 3. Update `fhir/client.lua` to recognize your backend
 4. See `fhir/backends/google_healthcare.lua` as an example
 
----
-## Error Handling
-
-Every HTTP 4xx/5xx raises a Lua error table:
-
-```lua
-local ok, err = pcall(client.get, client, "Patient", "nope")
-if not ok then
-  print(err.status)    -- HTTP status code
-  print(err.body)      -- OperationOutcome (if any)
-end
-```
-
----
-## Replacing the HTTP Backend
-
-`fhir.util.http` is a minimal LuaSocket wrapper.  To run fully non‑blocking
-under **lua‑http** or **Luvit**, implement a drop‑in object exposing:
-
-```lua
-:get(path)           -> data, headers
-:post(path, body)    -> data, headers
--- etc for put/patch/delete
-```
-
-and pass it during client construction:
-
-```lua
-local http_async = require("my_http_async")
-local client = Client.new{ baseUrl = url, http_options = {}, headers = {}, http = http_async }
-```
 
 ---
 ## Examples
 
-- **[examples/google_healthcare_example.lua](examples/google_healthcare_example.lua)** - Complete Google Healthcare API demo
-- **[examples/create_patient_with_key.lua](examples/create_patient_with_key.lua)** - Create patient using service account key file
+- **[examples/create_patient.lua](examples/create_patient.lua)** - Simple patient creation using Google Healthcare API
+- **[examples/create_patient_async.lua](examples/create_patient_async.lua)** - Async patient creation with coroutines
+- **[examples/find_patient.lua](examples/find_patient.lua)** - Search for patients by ID or name with CLI parameters
+- **[examples/record_vaccine.lua](examples/record_vaccine.lua)** - Record immunizations/vaccines for patients
 - **[examples/jwt_helper.lua](examples/jwt_helper.lua)** - JWT signing helper for production authentication
 - **[CONNECT.md](CONNECT.md)** - Google Healthcare API setup guide
 
-### Using Service Account Keys and .env file
+### Running Examples
 
-To create a patient using Google Healthcare API, ensure your `.env` file is configured as shown above.
-
-If you have a service account key JSON file, you can specify its path in the `.env` file using `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` or pass it as a command-line argument to the script.
+All examples automatically load configuration from your `.env` file. To run any example:
 
 ```bash
-# Ensure .env file is present in the project root
-# Example .env contents:
-# GOOGLE_PROJECT_ID="ada-health-459902"
-# GOOGLE_LOCATION="us-central1"
-# GOOGLE_DATASET_ID="demo-fhir"
-# GOOGLE_FHIR_STORE_ID="my-dataset"
-# GOOGLE_SERVICE_ACCOUNT_KEY_PATH="../healthcare-api/ada-health-459902-205e36f7d1b8.json"
+# Simple patient creation
+lua examples/create_patient.lua
 
-# Run the script (key path from .env or as argument)
-lua examples/create_patient_with_key.lua
-# OR (if GOOGLE_SERVICE_ACCOUNT_KEY_PATH is not in .env):
-lua examples/create_patient_with_key.lua ../healthcare-api/your-key.json
+# Async patient creation  
+lua examples/create_patient_async.lua
+
+# Find patient by ID or name
+lua examples/find_patient.lua f16195fd-25d0-4294-ad6f-8c1046897293
+lua examples/find_patient.lua "John"
+
+# Record a vaccine for a patient
+lua examples/record_vaccine.lua
 ```
 
-The script will:
-1. Load configuration from `.env` (GOOGLE_PROJECT_ID, etc.).
-2. Optionally load your service account key if `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` is set or a path is provided as an argument.
-3. Set up authentication (primarily via gcloud CLI for this example, as direct JWT signing is a separate implementation).
-4. Create a male patient named Mary Jane, age 47.
-5. Verify the patient was created successfully.
+### Using .env Configuration
 
-**Note:** For production use with service account keys directly (without gcloud CLI), implement proper JWT signing using libraries like `lua-resty-jwt` or `luacrypto`. See `examples/jwt_helper.lua` for guidance. The `fhir.client` will pass the `service_account_key_path` (if available from `.env` or opts) to the Google backend, which can be used by a full JWT implementation.
+All examples support automatic `.env` file loading. Create a `.env` file in your project root:
+
+```env
+GOOGLE_PROJECT_ID="your-gcp-project"
+GOOGLE_LOCATION="us-central1" 
+GOOGLE_DATASET_ID="your-dataset"
+GOOGLE_FHIR_STORE_ID="your-fhir-store"
+# Optional: Path to your service account key JSON file
+GOOGLE_SERVICE_ACCOUNT_KEY_PATH="/path/to/your-service-account-key.json"
+```
+
+The examples will automatically find and load this configuration from:
+- Current directory (`./.env`)
+- Parent directories (`../.env`, `../../.env`, etc.)  
+- Default lua-dotenv location (`~/.config/.env`)
+
+**Note:** For production use with service account keys directly (without gcloud CLI), implement proper JWT signing using libraries like `lua-resty-jwt` or `luacrypto`. See `examples/jwt_helper.lua` for guidance.
 
 
 
