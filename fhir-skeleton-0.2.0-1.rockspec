@@ -9,7 +9,13 @@ description = {
   homepage  = "https://github.com/yourname/fhir-lua",
   license   = "MIT",
 }
-dependencies = { "lua >= 5.3", "lua-cjson", "luasocket" }
+dependencies = {
+  "lua >= 5.1",
+  "luasocket",
+  "lua-cjson",
+  "luasec",
+  "lua-dotenv"
+}
 build = {
   type    = "builtin",
   modules = {

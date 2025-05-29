@@ -1,4 +1,5 @@
-local Client = require("fhir.client")
+local Client = require("fhir.client") -- This will ensure dotenv is loaded via client.lua
+
 local AsyncClient = {}
 AsyncClient.__index = AsyncClient
 setmetatable(AsyncClient, { __index = Client })

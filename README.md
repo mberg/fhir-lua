@@ -23,16 +23,18 @@ sudo apt install luarocks
 ### On macOS with Homebrew
 brew install luarocks
 
-
 ```bash
-# install locally
-luarocks make --local fhir-skeleton-0.2.0-1.rockspec
+# Install dependencies (including lua-dotenv for .env support)
+luarocks install lua-cjson --local
+luarocks install luasocket --local
+luarocks install luasec --local
+luarocks install lua-dotenv --local
 
-# or, once published to LuaRocks
-luarocks install fhir-skeleton
+# Install fhir-lua locally
+luarocks make --local fhir-skeleton-0.2.0-1.rockspec
 ```
 
-Dependencies: **Lua 5.3+**, `lua‑cjson`, `luasocket` (default HTTP backend). Swap in a different backend by replacing `fhir.util.http`.
+Dependencies: **Lua 5.1+**, `lua-cjson`, `luasocket`, `luasec`, `lua-dotenv`. Swap in a different backend by replacing `fhir.util.http`.
 
 ---
 ## Quick Start (Sync)
@@ -60,18 +62,28 @@ print(p2.name[1].family)
 
 ### Google Healthcare API
 
+For Google Healthcare API, create a `.env` file in your project root:
+
+```env
+GOOGLE_PROJECT_ID="your-gcp-project"
+GOOGLE_LOCATION="us-central1" 
+GOOGLE_DATASET_ID="your-dataset"
+GOOGLE_FHIR_STORE_ID="your-fhir-store"
+# Optional: Path to your service account key JSON file
+# GOOGLE_SERVICE_ACCOUNT_KEY_PATH="/path/to/your-service-account-key.json"
+```
+
+Then, you can initialize the client simply:
+
 ```lua
 local fhir = require("fhir")
 
--- Configure for Google Healthcare API
+-- Configure for Google Healthcare API (reads from .env)
 local client = fhir.client.new{
-  backend = "google_healthcare",
-  google_config = {
-    project_id = "your-gcp-project",
-    location = "us-central1", 
-    dataset_id = "your-dataset",
-    fhir_store_id = "your-fhir-store"
-  }
+  backend = "google_healthcare"
+  -- google_config is now optional and will be picked up from .env
+  -- You can still override here: 
+  -- google_config = { project_id = "override-project" }
 }
 
 -- Same FHIR operations work with Google Healthcare
@@ -200,7 +212,43 @@ local client = Client.new{ baseUrl = url, http_options = {}, headers = {}, http 
 ## Examples
 
 - **[examples/google_healthcare_example.lua](examples/google_healthcare_example.lua)** - Complete Google Healthcare API demo
+- **[examples/create_patient_with_key.lua](examples/create_patient_with_key.lua)** - Create patient using service account key file
+- **[examples/jwt_helper.lua](examples/jwt_helper.lua)** - JWT signing helper for production authentication
 - **[CONNECT.md](CONNECT.md)** - Google Healthcare API setup guide
+
+### Using Service Account Keys and .env file
+
+To create a patient using Google Healthcare API, ensure your `.env` file is configured as shown above.
+
+If you have a service account key JSON file, you can specify its path in the `.env` file using `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` or pass it as a command-line argument to the script.
+
+```bash
+# Ensure .env file is present in the project root
+# Example .env contents:
+# GOOGLE_PROJECT_ID="ada-health-459902"
+# GOOGLE_LOCATION="us-central1"
+# GOOGLE_DATASET_ID="demo-fhir"
+# GOOGLE_FHIR_STORE_ID="my-dataset"
+# GOOGLE_SERVICE_ACCOUNT_KEY_PATH="../healthcare-api/ada-health-459902-205e36f7d1b8.json"
+
+# Run the script (key path from .env or as argument)
+lua examples/create_patient_with_key.lua
+# OR (if GOOGLE_SERVICE_ACCOUNT_KEY_PATH is not in .env):
+lua examples/create_patient_with_key.lua ../healthcare-api/your-key.json
+```
+
+The script will:
+1. Load configuration from `.env` (GOOGLE_PROJECT_ID, etc.).
+2. Optionally load your service account key if `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` is set or a path is provided as an argument.
+3. Set up authentication (primarily via gcloud CLI for this example, as direct JWT signing is a separate implementation).
+4. Create a male patient named Mary Jane, age 47.
+5. Verify the patient was created successfully.
+
+**Note:** For production use with service account keys directly (without gcloud CLI), implement proper JWT signing using libraries like `lua-resty-jwt` or `luacrypto`. See `examples/jwt_helper.lua` for guidance. The `fhir.client` will pass the `service_account_key_path` (if available from `.env` or opts) to the Google backend, which can be used by a full JWT implementation.
+
+You might need this installed too
+
+brew install google-cloud-sdk
 
 ---
 ### License

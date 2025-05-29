@@ -3,6 +3,22 @@ local Resource    = require("fhir.resource")
 local SearchSet   = require("fhir.searchset")
 local Reference   = require("fhir.reference")
 
+-- Load dotenv configuration when the module is first loaded
+if not _G.__fhir_dotenv_loaded then
+  local success, dotenv = pcall(require, "lua-dotenv")
+  if success and dotenv and type(dotenv.load_dotenv) == "function" then
+    -- lua-dotenv looks for .env in ~/.config/.env by default
+    -- We need to specify the path to our project's .env file
+    local env_file_path = "./.env"  -- Relative to current working directory
+    local load_ok, load_err = pcall(dotenv.load_dotenv, env_file_path)
+    if load_ok then
+      -- Store dotenv module globally so we can use it later
+      _G.__fhir_dotenv_module = dotenv
+    end
+    _G.__fhir_dotenv_loaded = true
+  end
+end
+
 local Client = {}
 Client.__index = Client
 
@@ -15,9 +31,35 @@ function Client.new(opts)
   -- Backend selection
   if opts.backend == "google_healthcare" then
     local GoogleHealthcare = require("fhir.backends.google_healthcare")
-    assert(opts.google_config, "google_config required for Google Healthcare backend")
-    self.http = GoogleHealthcare.new(opts.google_config)
-    self.baseUrl = "google_healthcare://" .. opts.google_config.project_id
+    -- Initialize google_config. If opts.google_config is nil, this creates an empty table.
+    local google_config = opts.google_config or {}
+
+    -- Helper function to get environment variables, trying dotenv first, then os.getenv
+    local function get_env_var(key)
+      if _G.__fhir_dotenv_module then
+        return _G.__fhir_dotenv_module.get(key) or os.getenv(key)
+      else
+        return os.getenv(key)
+      end
+    end
+
+    -- Populate google_config from environment variables if not provided in google_config table
+    google_config.project_id = google_config.project_id or get_env_var("GOOGLE_PROJECT_ID")
+    google_config.location = google_config.location or get_env_var("GOOGLE_LOCATION")
+    google_config.dataset_id = google_config.dataset_id or get_env_var("GOOGLE_DATASET_ID")
+    google_config.fhir_store_id = google_config.fhir_store_id or get_env_var("GOOGLE_FHIR_STORE_ID")
+    
+    -- Service account key path can also come from env if not directly in google_config
+    local key_path_from_env = get_env_var("GOOGLE_SERVICE_ACCOUNT_KEY_PATH")
+    google_config.service_account_key = google_config.service_account_key or key_path_from_env
+
+    assert(google_config.project_id, "google_config.project_id or GOOGLE_PROJECT_ID environment variable required")
+    assert(google_config.location, "google_config.location or GOOGLE_LOCATION environment variable required")
+    assert(google_config.dataset_id, "google_config.dataset_id or GOOGLE_DATASET_ID environment variable required")
+    assert(google_config.fhir_store_id, "google_config.fhir_store_id or GOOGLE_FHIR_STORE_ID environment variable required")
+
+    self.http = GoogleHealthcare.new(google_config)
+    self.baseUrl = "google_healthcare://" .. google_config.project_id
     
     -- Extend client with Google-specific methods
     local GoogleClient = require("fhir.backends.google_client")

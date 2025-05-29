@@ -158,7 +158,7 @@ end
 
 function GoogleHealthcare:_req(method, path, body)
   local token = self:authenticate()
-  local url = self.fhir_store_path .. "/fhir/R4" .. path
+  local url = self.fhir_store_path .. "/fhir" .. path
   
   local headers = {
     ["authorization"] = "Bearer " .. token
