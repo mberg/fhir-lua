@@ -18,10 +18,13 @@ Supports:
 Install luarocks Lua package manager
 
 ### On Ubuntu/Debian
+```bash
 sudo apt install luarocks
-
+```
 ### On macOS with Homebrew
+```bash
 brew install luarocks
+```
 
 ```bash
 # Install dependencies (including lua-dotenv for .env support)
