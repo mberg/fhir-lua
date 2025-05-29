@@ -31,7 +31,7 @@ luarocks install luasec --local
 luarocks install lua-dotenv --local
 
 # Install fhir-lua locally
-luarocks make fhir-lua-0.2.00-1.rockspec
+luarocks make fhir-lua-0.2.0-1.rockspec
 ```
 
 Dependencies: **Lua 5.1+**, `lua-cjson`, `luasocket`, `luasec`, `lua-dotenv`. Swap in a different backend by replacing `fhir.util.http`.
@@ -163,6 +163,10 @@ local client = fhir.client.new{
   }
 }
 
+You might need this installed too
+
+brew install google-cloud-sdk
+
 -- Google-specific methods also available
 local results = client:google_search("Patient", { family = "Smith" })
 ```
@@ -246,9 +250,7 @@ The script will:
 
 **Note:** For production use with service account keys directly (without gcloud CLI), implement proper JWT signing using libraries like `lua-resty-jwt` or `luacrypto`. See `examples/jwt_helper.lua` for guidance. The `fhir.client` will pass the `service_account_key_path` (if available from `.env` or opts) to the Google backend, which can be used by a full JWT implementation.
 
-You might need this installed too
 
-brew install google-cloud-sdk
 
 ---
 ### License
