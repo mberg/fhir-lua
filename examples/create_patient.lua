@@ -13,8 +13,8 @@ local patient = fhir.resource:new("Patient", {
   name = {
     {
       use = "official",
-      family = "Smith",
-      given = {"John"}
+      family = "Pippen",
+      given = {"Scottie"}
     }
   },
   gender = "male",

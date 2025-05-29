@@ -31,7 +31,7 @@ luarocks install luasec --local
 luarocks install lua-dotenv --local
 
 # Install fhir-lua locally
-luarocks make fhir-lua-0.1.rockspec
+luarocks make fhir-lua-0.2.00-1.rockspec
 ```
 
 Dependencies: **Lua 5.1+**, `lua-cjson`, `luasocket`, `luasec`, `lua-dotenv`. Swap in a different backend by replacing `fhir.util.http`.

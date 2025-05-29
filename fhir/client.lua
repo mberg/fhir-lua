@@ -7,32 +7,50 @@ local Reference   = require("fhir.reference")
 if not _G.__fhir_dotenv_loaded then
   local success, dotenv = pcall(require, "lua-dotenv")
   if success and dotenv and type(dotenv.load_dotenv) == "function" then
-    -- Try to find .env file in current directory or parent directories
-    local function find_env_file()
-      local possible_paths = {
-        "./.env",           -- Current directory
-        "../.env",          -- Parent directory
-        "../../.env",       -- Grandparent directory
-        "../../../.env"     -- Great-grandparent directory
+    -- Function to check if a file exists and is readable
+    local function file_exists(path)
+      local file = io.open(path, "r")
+      if file then
+        file:close()
+        return true
+      end
+      return false
+    end
+    
+    -- Try to find and load .env file from multiple locations
+    local function load_env_file()
+      local search_paths = {
+        "./.env",                    -- Current working directory
+        "../.env",                   -- Parent directory
+        "../../.env",                -- Grandparent directory  
+        "../../../.env",             -- Great-grandparent directory
+        os.getenv("HOME") .. "/.config/.env"  -- Default lua-dotenv location
       }
       
-      for _, path in ipairs(possible_paths) do
-        local file = io.open(path, "r")
-        if file then
-          file:close()
-          return path
+      for _, env_path in ipairs(search_paths) do
+        if env_path and file_exists(env_path) then
+          local load_ok, load_err = pcall(dotenv.load_dotenv, env_path)
+          if load_ok then
+            return env_path
+          end
         end
       end
+      
+      -- If no .env file found, try loading from default location without file check
+      -- This allows lua-dotenv to use its default ~/.config/.env if it exists
+      local default_load_ok = pcall(dotenv.load_dotenv)
+      if default_load_ok then
+        return "~/.config/.env (default)"
+      end
+      
       return nil
     end
     
-    local env_file_path = find_env_file()
-    if env_file_path then
-      local load_ok, load_err = pcall(dotenv.load_dotenv, env_file_path)
-      if load_ok then
-        -- Store dotenv module globally so we can use it later
-        _G.__fhir_dotenv_module = dotenv
-      end
+    local loaded_path = load_env_file()
+    if loaded_path then
+      -- Store dotenv module globally so we can use it later
+      _G.__fhir_dotenv_module = dotenv
+      _G.__fhir_dotenv_loaded_from = loaded_path
     end
     _G.__fhir_dotenv_loaded = true
   end
