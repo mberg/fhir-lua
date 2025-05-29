@@ -14,7 +14,24 @@ function AsyncClient.new(opts)
   opts = opts or {}
   opts.mode = "async"
   local self = Client.new(opts)
-  return setmetatable(self, AsyncClient)
+  setmetatable(self, AsyncClient)
+  
+  -- If this is a Google Healthcare client, make the Google-specific methods async too
+  if self:is_google_healthcare() then
+    local google_methods = {"google_search", "google_create_resource", "google_get_resource", 
+                           "google_update_resource", "google_delete_resource"}
+    
+    for _, method_name in ipairs(google_methods) do
+      if self[method_name] then
+        local original_method = self[method_name]
+        self[method_name] = function(self_instance, ...)
+          return asyncify(self_instance, original_method, ...)
+        end
+      end
+    end
+  end
+  
+  return self
 end
 
 for _, m in ipairs({"create", "save", "get", "patch", "delete"}) do

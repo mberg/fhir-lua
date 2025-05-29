@@ -23,5 +23,6 @@ build = {
     ["fhir.util.serializer"]               = "fhir/util/serializer.lua",
     ["fhir.util.params"]                   = "fhir/util/params.lua",
     ["fhir.backends.google_healthcare"]    = "fhir/backends/google_healthcare.lua",
+    ["fhir.backends.google_client"]        = "fhir/backends/google_client.lua",
   },
 } 
