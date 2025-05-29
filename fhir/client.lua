@@ -7,12 +7,25 @@ local Client = {}
 Client.__index = Client
 
 function Client.new(opts)
-  assert(opts and opts.baseUrl, "baseUrl required")
+  assert(opts, "Configuration options required")
+  
   local self = setmetatable({}, Client)
-  self.baseUrl = opts.baseUrl:gsub("/*$", "")
-  self.headers = opts.headers or {}
-  self.http    = Http.new(self.baseUrl, self.headers, opts.http_options)
-  self.mode    = opts.mode or "sync"
+  self.mode = opts.mode or "sync"
+  
+  -- Backend selection
+  if opts.backend == "google_healthcare" then
+    local GoogleHealthcare = require("fhir.backends.google_healthcare")
+    assert(opts.google_config, "google_config required for Google Healthcare backend")
+    self.http = GoogleHealthcare.new(opts.google_config)
+    self.baseUrl = "google_healthcare://" .. opts.google_config.project_id
+  else
+    -- Default to standard HTTP backend
+    assert(opts.baseUrl, "baseUrl required for standard HTTP backend")
+    self.baseUrl = opts.baseUrl:gsub("/*$", "")
+    self.headers = opts.headers or {}
+    self.http = Http.new(self.baseUrl, self.headers, opts.http_options)
+  end
+  
   return self
 end
 
@@ -50,5 +63,46 @@ function Client:resources(rt)  return SearchSet.new(self, rt) end
 
 -- Reference helper -------------------------------------------
 function Client:reference(rt, id) return Reference.new(self, rt, id) end
+
+-- Backend-specific helper methods
+function Client:is_google_healthcare()
+  return self.baseUrl and self.baseUrl:match("^google_healthcare://")
+end
+
+-- Google Healthcare specific convenience methods
+function Client:google_search(resource_type, params)
+  if not self:is_google_healthcare() then
+    error("google_search only available with Google Healthcare backend")
+  end
+  return self.http:search_resources(resource_type, params)
+end
+
+function Client:google_create_resource(resource_type, resource_data)
+  if not self:is_google_healthcare() then
+    error("google_create_resource only available with Google Healthcare backend")
+  end
+  return self.http:create_resource(resource_type, resource_data)
+end
+
+function Client:google_get_resource(resource_type, resource_id)
+  if not self:is_google_healthcare() then
+    error("google_get_resource only available with Google Healthcare backend")
+  end
+  return self.http:get_resource(resource_type, resource_id)
+end
+
+function Client:google_update_resource(resource_type, resource_id, resource_data)
+  if not self:is_google_healthcare() then
+    error("google_update_resource only available with Google Healthcare backend")
+  end
+  return self.http:update_resource(resource_type, resource_id, resource_data)
+end
+
+function Client:google_delete_resource(resource_type, resource_id)
+  if not self:is_google_healthcare() then
+    error("google_delete_resource only available with Google Healthcare backend")
+  end
+  return self.http:delete_resource(resource_type, resource_id)
+end
 
 return Client 

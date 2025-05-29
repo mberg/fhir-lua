@@ -8,6 +8,7 @@ Supports:
 * Resource CRUD helpers (create / save / get / patch / delete)
 * Fluent SearchSet query builder with modifiers (`birthdate__gt`, `_sort`, `_count`)
 * Lightweight `Reference` objects
+* **Google Healthcare API backend** for production FHIR operations
 
 > **Status:** Proof‑of‑concept — good enough for demos & unit tests. Pull requests welcome!
 
@@ -31,10 +32,12 @@ luarocks make --local fhir-skeleton-0.2.0-1.rockspec
 luarocks install fhir-skeleton
 ```
 
-Dependencies: **Lua 5.3+**, `lua‑cjson`, `lua‑socket` (default HTTP backend). Swap in a different backend by replacing `fhir.util.http`.
+Dependencies: **Lua 5.3+**, `lua‑cjson`, `luasocket` (default HTTP backend). Swap in a different backend by replacing `fhir.util.http`.
 
 ---
 ## Quick Start (Sync)
+
+### Standard FHIR Server
 
 ```lua
 local fhir   = require("fhir")
@@ -54,6 +57,30 @@ print("Patient ID:", pat.id)
 local p2 = client:get("Patient", pat.id)
 print(p2.name[1].family)
 ```
+
+### Google Healthcare API
+
+```lua
+local fhir = require("fhir")
+
+-- Configure for Google Healthcare API
+local client = fhir.client.new{
+  backend = "google_healthcare",
+  google_config = {
+    project_id = "your-gcp-project",
+    location = "us-central1", 
+    dataset_id = "your-dataset",
+    fhir_store_id = "your-fhir-store"
+  }
+}
+
+-- Same FHIR operations work with Google Healthcare
+local patient = fhir.resource:new("Patient", { active = true })
+client:create(patient)
+print("Created patient:", patient.id)
+```
+
+See **[CONNECT.md](CONNECT.md)** for detailed Google Healthcare API setup.
 
 ---
 ## Quick Start (Async)
@@ -101,6 +128,43 @@ ref:delete()                     -- DELETE /Observation/abc123
 ```
 
 ---
+## Backend Support
+
+FHIR-Lua supports multiple backends:
+
+### Standard HTTP FHIR Servers
+```lua
+local client = fhir.client.new{
+  baseUrl = "https://hapi.fhir.org/baseR4"
+}
+```
+
+### Google Healthcare API
+```lua
+local client = fhir.client.new{
+  backend = "google_healthcare",
+  google_config = {
+    project_id = "your-project",
+    location = "us-central1",
+    dataset_id = "your-dataset", 
+    fhir_store_id = "your-store"
+  }
+}
+
+-- Google-specific methods also available
+local results = client:google_search("Patient", { family = "Smith" })
+```
+
+### Adding New Backends
+
+To add support for new FHIR backends:
+
+1. Create a new module in `fhir/backends/your_backend.lua`
+2. Implement the HTTP interface: `get`, `post`, `put`, `patch`, `delete`
+3. Update `fhir/client.lua` to recognize your backend
+4. See `fhir/backends/google_healthcare.lua` as an example
+
+---
 ## Error Handling
 
 Every HTTP 4xx/5xx raises a Lua error table:
@@ -131,6 +195,12 @@ and pass it during client construction:
 local http_async = require("my_http_async")
 local client = Client.new{ baseUrl = url, http_options = {}, headers = {}, http = http_async }
 ```
+
+---
+## Examples
+
+- **[examples/google_healthcare_example.lua](examples/google_healthcare_example.lua)** - Complete Google Healthcare API demo
+- **[CONNECT.md](CONNECT.md)** - Google Healthcare API setup guide
 
 ---
 ### License
