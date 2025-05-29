@@ -65,6 +65,8 @@ print(p2.name[1].family)
 
 ### Google Healthcare API
 
+See **[CONNECT.md](CONNECT.md)** - Google Healthcare API setup guide
+
 For Google Healthcare API, create a `.env` file in your project root:
 
 ```env
@@ -191,8 +193,7 @@ To add support for new FHIR backends:
 - **[examples/create_patient_async.lua](examples/create_patient_async.lua)** - Async patient creation with coroutines
 - **[examples/find_patient.lua](examples/find_patient.lua)** - Search for patients by ID or name with CLI parameters
 - **[examples/record_vaccine.lua](examples/record_vaccine.lua)** - Record immunizations/vaccines for patients
-- **[examples/jwt_helper.lua](examples/jwt_helper.lua)** - JWT signing helper for production authentication
-- **[CONNECT.md](CONNECT.md)** - Google Healthcare API setup guide
+
 
 ### Running Examples
 
