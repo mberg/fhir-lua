@@ -196,7 +196,7 @@ To add support for new FHIR backends:
 
 ### Running Examples
 
-All examples automatically load configuration from your `.env` file. To run any example:
+All examples automatically load configuration from your `.env` file. To run any example:  
 
 ```bash
 # Simple patient creation
