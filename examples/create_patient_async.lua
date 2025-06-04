@@ -14,11 +14,11 @@ local patient = Resource:new("Patient", {
   name = {
     {
       use = "official",
-      family = "Praekelt",
-      given = {"Gustavio"}
+      family = "Zulu",
+      given = {"Shaka"}
     }
   },
-  gender = "male",
+  gender = "female",
   birthDate = "2025-05-24"
 })
 
