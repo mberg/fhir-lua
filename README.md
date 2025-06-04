@@ -200,11 +200,11 @@ To add support for new FHIR backends:
 All examples automatically load configuration from your `.env` file. To run any example:  
 
 ```bash
-# Simple patient creation
-lua examples/create_patient.lua
+# Simple patient creation (optional first and last name)
+lua examples/create_patient.lua [FirstName] [LastName]
 
-# Async patient creation  
-lua examples/create_patient_async.lua
+# Async patient creation (optional first and last name)
+lua examples/create_patient_async.lua [FirstName] [LastName]
 
 # Find patient by ID or name
 lua examples/find_patient.lua f16195fd-25d0-4294-ad6f-8c1046897293

@@ -2,6 +2,10 @@
 
 local fhir = require("fhir")
 
+-- Get optional first and last name from CLI arguments
+local given_name = arg[1] or "Scottie"
+local family_name = arg[2] or "Pippen"
+
 -- Create client (automatically loads .env configuration)
 local client = fhir.client.new({
   backend = "google_healthcare"
@@ -13,8 +17,8 @@ local patient = fhir.resource:new("Patient", {
   name = {
     {
       use = "official",
-      family = "Pippen",
-      given = {"Scottie"}
+      family = family_name,
+      given = {given_name}
     }
   },
   gender = "male",

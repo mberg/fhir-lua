@@ -3,6 +3,10 @@
 local AsyncClient = require("fhir.async_client")
 local Resource = require("fhir.resource")
 
+-- Get optional first and last name from CLI arguments
+local given_name = arg[1] or "Shaka"
+local family_name = arg[2] or "Zulu"
+
 -- Create async client (automatically loads .env configuration)
 local client = AsyncClient.new({
   backend = "google_healthcare"
@@ -14,8 +18,8 @@ local patient = Resource:new("Patient", {
   name = {
     {
       use = "official",
-      family = "Zulu",
-      given = {"Shaka"}
+      family = family_name,
+      given = {given_name}
     }
   },
   gender = "female",
