@@ -73,13 +73,6 @@ local function create_jwt_claims(service_account, scopes)
   }))
 end
 
--- Simple RSA signature placeholder - in production, use a proper crypto library
-local function sign_jwt(unsigned_jwt, private_key)
-  -- WARNING: This is a placeholder. In production, you need proper RSA-SHA256 signing
-  -- Consider using lua-resty-jwt, luacrypto, or similar libraries
-  error("JWT signing not implemented. Please implement RSA-SHA256 signing or use gcloud CLI for tokens.")
-end
-
 function GoogleHealthcare:get_access_token_from_gcloud()
   -- Try to get token from gcloud CLI
   local handle = io.popen("gcloud auth application-default print-access-token 2>/dev/null")
